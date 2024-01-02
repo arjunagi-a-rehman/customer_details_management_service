@@ -50,7 +50,9 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
         String email=customerRequestDto.getEmail();
         Occupation occupation=customerRequestDto.getOccupation();
 
-        if(email.substring(email.indexOf("@")).equals("@hikeon.tech"))return CustomerGroup.Hikeon;
+        if (email != null && email.contains("@hikeon.tech")) {
+            return CustomerGroup.Hikeon;
+        }
         if(occupation.equals(Occupation.Developer))return CustomerGroup.Developer;
         if(occupation.equals(Occupation.Chef))return CustomerGroup.Chef;
         return CustomerGroup.NA;
