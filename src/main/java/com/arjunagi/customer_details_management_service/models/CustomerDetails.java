@@ -31,6 +31,7 @@ public class CustomerDetails {
     private String email;
 
     private LocalDate dob;
+
     @Enumerated(value = EnumType.STRING)
     private Occupation occupation;
     @Enumerated(value = EnumType.STRING)
