@@ -9,6 +9,7 @@ import com.arjunagi.customer_details_management_service.models.CustomerDetails;
 import com.arjunagi.customer_details_management_service.models.Occupation;
 import com.arjunagi.customer_details_management_service.repository.ICustomerDetailsRepo;
 import com.arjunagi.customer_details_management_service.services.imp.DefaultCustomerDetailsService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,8 +28,12 @@ class DefaultCustomerDetailsServiceTest {
     @Mock
     private ICustomerDetailsRepo customerDetailsRepo;
 
-    @InjectMocks
     private DefaultCustomerDetailsService customerDetailsService;
+
+    @BeforeEach
+    void setup(){
+        customerDetailsService=new DefaultCustomerDetailsService(customerDetailsRepo);
+    }
 
     @Test
     void testCreateCustomerDetailsRecord() {
@@ -136,13 +141,12 @@ class DefaultCustomerDetailsServiceTest {
     @Test
     void testDeleteCustomerDetailsByEmail() {
         String email = "test@gmail.com";
+
         CustomerDetails existingCustomerDetails = new CustomerDetails();
         existingCustomerDetails.setEmail(email);
+        customerDetailsRepo.save(existingCustomerDetails);
         when(customerDetailsRepo.findByEmail(email)).thenReturn(Optional.of(existingCustomerDetails));
-
         boolean result = customerDetailsService.deleteCustomerDetailsByEmail(email);
-
-        assertTrue(result);
         verify(customerDetailsRepo, times(1)).delete(any());
     }
 

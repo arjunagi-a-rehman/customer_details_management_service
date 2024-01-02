@@ -24,7 +24,7 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
     private ICustomerDetailsRepo customerDetailsRepo;
 
     /**
-     * @param customerRequestDto
+     * @param customerRequestDto and create customer record and assign group and save in db
      */
     @Override
     public void createCustomerDetailsRecord(CustomerRequestDto customerRequestDto) {
@@ -60,7 +60,7 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
 
     /**
      * @param email
-     * @return
+     * @return customer data
      */
     @Override
     public CustomerResponseDto getCustomerDetailsByEmail(String email) {
@@ -75,7 +75,7 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
 
     /**
      * @param customerRequestDto
-     * @return
+     * @return return true if record is updated successfully
      */
     @Override
     public Boolean updateCustomerDetailsRecord(CustomerRequestDto customerRequestDto) {
@@ -95,14 +95,13 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
 
         CustomerDetailsMapper.CustomerRequestDtoToCustomerDetails(customerRequestDto, customerDetails);
         customerDetails.setCustomerGroup(customerGroup);
-
         customerDetailsRepo.save(customerDetails);
-        return true;
+        return customerDetailsRepo.findByEmail(customerRequestDto.getEmail()).equals(customerDetails);
     }
 
     /**
      * @param email
-     * @return
+     * @return true if record is deleted successfully
      */
     @Override
     public Boolean deleteCustomerDetailsByEmail(String email) {
@@ -111,6 +110,6 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
                         ()->new ResourceNotFoundException("record not found with","email",email)
                 );
         customerDetailsRepo.delete(customerDetails);
-        return true;
+        return customerDetailsRepo.findByEmail(email).isEmpty();
     }
 }
