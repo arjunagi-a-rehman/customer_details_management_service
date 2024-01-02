@@ -5,31 +5,34 @@ import com.arjunagi.customer_details_management_service.dtos.CustomerRequestDto;
 import com.arjunagi.customer_details_management_service.dtos.CustomerResponseDto;
 import com.arjunagi.customer_details_management_service.services.ICustomerDetailService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/api",produces = {MediaType.APPLICATION_JSON_VALUE})
 @AllArgsConstructor
+@Validated
 public class CustomerDetailsController {
 
     private ICustomerDetailService customerDetailService;
     @PostMapping("/customer")
-    public ResponseEntity<ApiResponseDto> createCustomerDetails(@RequestBody CustomerRequestDto customerRequestDto){
+    public ResponseEntity<ApiResponseDto> createCustomerDetails(@RequestBody @Valid CustomerRequestDto customerRequestDto){
         customerDetailService.createCustomerDetailsRecord(customerRequestDto);
         return new ResponseEntity<>(new ApiResponseDto("201","created customer record successfully"), HttpStatus.CREATED);
     }
 
     @GetMapping("/customer")
-    public ResponseEntity<CustomerResponseDto> getCustomerDetailsByEmail(@RequestParam String email){
+    public ResponseEntity<CustomerResponseDto> getCustomerDetailsByEmail(@RequestParam @Email(message = "Invalid email format") String email){
         return new ResponseEntity<>(customerDetailService.getCustomerDetailsByEmail(email),HttpStatus.OK);
     }
 
     @PutMapping("/customer")
-    public ResponseEntity<ApiResponseDto> updateCustomerDetails(@RequestBody CustomerRequestDto customerRequestDto){
+    public ResponseEntity<ApiResponseDto> updateCustomerDetails(@RequestBody @Valid CustomerRequestDto customerRequestDto){
         Boolean isUpdated=customerDetailService.updateCustomerDetailsRecord(customerRequestDto);
         if(isUpdated)
             return ResponseEntity.ok(new ApiResponseDto("200","updated successfully"));
@@ -38,7 +41,7 @@ public class CustomerDetailsController {
     }
 
     @DeleteMapping("/customer/{email}")
-    public ResponseEntity<ApiResponseDto> deleteCustomerByEmail(@PathVariable String email){
+    public ResponseEntity<ApiResponseDto> deleteCustomerByEmail(@PathVariable @Email(message = "Invalid email format") String email){
         Boolean isDeleted=customerDetailService.deleteCustomerDetailsByEmail(email);
         if(isDeleted)
             return ResponseEntity.ok(new ApiResponseDto("200","deleted successfully"));
