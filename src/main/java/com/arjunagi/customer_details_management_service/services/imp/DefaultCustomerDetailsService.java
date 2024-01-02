@@ -4,6 +4,7 @@ import com.arjunagi.customer_details_management_service.dtos.CustomerRequestDto;
 import com.arjunagi.customer_details_management_service.dtos.CustomerResponseDto;
 import com.arjunagi.customer_details_management_service.exception.CustomerAgeException;
 import com.arjunagi.customer_details_management_service.exception.CustomerDetailsAlreadyExistsException;
+import com.arjunagi.customer_details_management_service.exception.ResourceNotFoundException;
 import com.arjunagi.customer_details_management_service.mappers.CustomerDetailsMapper;
 import com.arjunagi.customer_details_management_service.models.CustomerDetails;
 import com.arjunagi.customer_details_management_service.models.CustomerGroup;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -26,14 +28,13 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
      */
     @Override
     public void createCustomerDetailsRecord(CustomerRequestDto customerRequestDto) {
-        
+
         if(customerDetailsRepo.findByEmail(customerRequestDto.getEmail()).isPresent())
             throw new CustomerDetailsAlreadyExistsException("The customer with email "+customerRequestDto.getEmail()+" already exist");
 
         if (ChronoUnit.YEARS.between(customerRequestDto.getDob(), LocalDate.now()) < 18) {
             throw new CustomerAgeException("The customer must be older than 18");
         }
-
         CustomerGroup customerGroup=getCustomerGroup(customerRequestDto);
 
         if(customerDetailsRepo.findByOccupationAndDobAndCustomerGroup(customerRequestDto.getOccupation(),customerRequestDto.getDob(),customerGroup).isPresent())
@@ -41,7 +42,6 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
 
         CustomerDetails customerDetails= CustomerDetailsMapper.CustomerRequestDtoToCustomerDetails(customerRequestDto,new CustomerDetails());
         customerDetails.setCustomerGroup(customerGroup);
-
         customerDetailsRepo.save(customerDetails);
 
     }
@@ -62,7 +62,13 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
      */
     @Override
     public CustomerResponseDto getCustomerDetailsByEmail(String email) {
-        return null;
+
+        CustomerDetails customerDetails=customerDetailsRepo.findByEmail(email).
+                orElseThrow(
+                        ()->new ResourceNotFoundException("record not found with","email",email)
+                );
+        CustomerResponseDto customerResponseDto=CustomerDetailsMapper.CustomerDetailsToCustomerResponseDto(customerDetails,new CustomerResponseDto());
+        return customerResponseDto;
     }
 
     /**
@@ -71,7 +77,25 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
      */
     @Override
     public Boolean updateCustomerDetailsRecord(CustomerRequestDto customerRequestDto) {
-        return null;
+
+        CustomerDetails customerDetails=customerDetailsRepo.findByEmail(customerRequestDto.getEmail()).
+                orElseThrow(
+                        ()->new ResourceNotFoundException("record not found with","email",customerRequestDto.getEmail())
+                );
+
+        if (ChronoUnit.YEARS.between(customerRequestDto.getDob(), LocalDate.now()) < 18) {
+            throw new CustomerAgeException("The customer must be older than 18");
+        }
+        CustomerGroup customerGroup=getCustomerGroup(customerRequestDto);
+        Optional<CustomerDetails> customerWithSameConstraint=customerDetailsRepo.findByOccupationAndDobAndCustomerGroup(customerRequestDto.getOccupation(),customerRequestDto.getDob(),customerGroup);
+        if(customerWithSameConstraint.isPresent() && !customerWithSameConstraint.get().equals(customerDetails))
+            throw new CustomerDetailsAlreadyExistsException("The customer with occupation "+customerRequestDto.getOccupation()+" ,date of birth "+customerRequestDto.getDob()+" and Customer group "+customerGroup+" already exist");
+
+        CustomerDetailsMapper.CustomerRequestDtoToCustomerDetails(customerRequestDto, customerDetails);
+        customerDetails.setCustomerGroup(customerGroup);
+
+        customerDetailsRepo.save(customerDetails);
+        return true;
     }
 
     /**
@@ -80,6 +104,11 @@ public class DefaultCustomerDetailsService implements ICustomerDetailService {
      */
     @Override
     public Boolean deleteCustomerDetailsByEmail(String email) {
-        return null;
+        CustomerDetails customerDetails=customerDetailsRepo.findByEmail(email).
+                orElseThrow(
+                        ()->new ResourceNotFoundException("record not found with","email",email)
+                );
+        customerDetailsRepo.delete(customerDetails);
+        return true;
     }
 }
