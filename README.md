@@ -116,7 +116,7 @@ Follow these steps to deploy the Customer Details Management Service locally:
    ```bash
    cd customer-details-management-service
    ```
-
+note:- in application.properties at src/main/resources set environment variable or hard code the credentials
 3. **Build the Project:**
    ```bash
    mvn clean install
