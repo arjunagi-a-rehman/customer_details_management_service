@@ -33,7 +33,7 @@ class DefaultCustomerDetailsServiceTest {
     @Test
     void testCreateCustomerDetailsRecord() {
         CustomerRequestDto customerRequestDto = new CustomerRequestDto();
-        customerRequestDto.setEmail("test@example.com");
+        customerRequestDto.setEmail("test@gmail.com");
         customerRequestDto.setDob(LocalDate.now().minusYears(20));
         customerRequestDto.setOccupation(Occupation.Developer);
 
@@ -57,7 +57,7 @@ class DefaultCustomerDetailsServiceTest {
     @Test
     void testCreateCustomerDetailsRecord_EmailAlreadyExists() {
         CustomerRequestDto customerRequestDto = new CustomerRequestDto();
-        customerRequestDto.setEmail("test@example.com");
+        customerRequestDto.setEmail("test@gmail.com");
 
         when(customerDetailsRepo.findByEmail(any())).thenReturn(Optional.of(new CustomerDetails()));
 
@@ -66,7 +66,6 @@ class DefaultCustomerDetailsServiceTest {
 
     @Test
     void testCreateCustomerDetailsRecord_OccupationDobGroupAlreadyExists() {
-        // Arrange
         CustomerRequestDto customerRequestDto = new CustomerRequestDto();
         customerRequestDto.setOccupation(Occupation.Developer);
         customerRequestDto.setDob(LocalDate.of(1990, 1, 1));
@@ -74,14 +73,13 @@ class DefaultCustomerDetailsServiceTest {
         when(customerDetailsRepo.findByEmail(any())).thenReturn(Optional.empty());
         when(customerDetailsRepo.findByOccupationAndDobAndCustomerGroup(any(), any(), any())).thenReturn(Optional.of(new CustomerDetails()));
 
-        // Act and Assert
         assertThrows(CustomerDetailsAlreadyExistsException.class, () -> customerDetailsService.createCustomerDetailsRecord(customerRequestDto));
         verify(customerDetailsRepo, never()).save(any());
     }
 
     @Test
     void testGetCustomerDetailsByEmail() {
-        String email = "test@example.com";
+        String email = "test@yahoo.com";
         CustomerDetails customerDetails = new CustomerDetails();
         customerDetails.setEmail(email);
 
@@ -95,18 +93,16 @@ class DefaultCustomerDetailsServiceTest {
 
     @Test
     void testGetCustomerDetailsByEmail_ResourceNotFound() {
-        // Arrange
-        String email = "nonexistent@example.com";
+        String email = "nonexistent@gmail.com";
 
         when(customerDetailsRepo.findByEmail(email)).thenReturn(Optional.empty());
 
-        // Act and Assert
         assertThrows(ResourceNotFoundException.class, () -> customerDetailsService.getCustomerDetailsByEmail(email));
         verify(customerDetailsRepo, never()).save(any()); // Verify that the repository save method is never called
     }
     @Test
     void testUpdateCustomerDetailsRecord() {
-        String email = "test@example.com";
+        String email = "test@gmail.com";
         CustomerRequestDto customerRequestDto = new CustomerRequestDto();
         customerRequestDto.setEmail(email);
         customerRequestDto.setDob(LocalDate.now().minusYears(25));
@@ -127,7 +123,7 @@ class DefaultCustomerDetailsServiceTest {
 
     @Test
     void testUpdateCustomerDetailsRecord_EmailNotFound() {
-        String email = "test@example.com";
+        String email = "test@gmail.com";
         CustomerRequestDto customerRequestDto = new CustomerRequestDto();
         customerRequestDto.setEmail(email);
 
@@ -139,8 +135,7 @@ class DefaultCustomerDetailsServiceTest {
 
     @Test
     void testDeleteCustomerDetailsByEmail() {
-        // Arrange
-        String email = "test@example.com";
+        String email = "test@gmail.com";
         CustomerDetails existingCustomerDetails = new CustomerDetails();
         existingCustomerDetails.setEmail(email);
         when(customerDetailsRepo.findByEmail(email)).thenReturn(Optional.of(existingCustomerDetails));
@@ -153,7 +148,7 @@ class DefaultCustomerDetailsServiceTest {
 
     @Test
     void testDeleteCustomerDetailsByEmail_EmailNotFound() {
-        String email = "test@example.com";
+        String email = "test@gmail.com";
         when(customerDetailsRepo.findByEmail(email)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> customerDetailsService.deleteCustomerDetailsByEmail(email));
         verify(customerDetailsRepo, never()).delete(any());
